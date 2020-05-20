@@ -22,9 +22,9 @@ namespace Echo.Server
 
         public Room GetRoomById(string roomId)
         {
-            var room = Rooms.GetOrAdd(roomId, r => new Room(r));
-            room.Disposable?.Dispose();
-            room.Disposable = RoomRemover(roomId, () => WriteLine("Room #{0} removed", roomId));
+            var room = Rooms.GetOrAdd(roomId, rid => new Room(rid));
+
+            RefreshRoomLife(room);
 
             return room;
         }
@@ -32,22 +32,34 @@ namespace Echo.Server
         public IEnumerable<string> VisitorsExceptRoomVisitors(string roomId)
         {
             var room = GetRoomById(roomId);
-            room.Disposable?.Dispose();
-            room.Disposable = RoomRemover(roomId, () => WriteLine("Room #{0} removed", roomId));
 
             return Rooms.SelectMany(r => r.Value.VisitorsConnectionIds).Except(room.VisitorsConnectionIds);
         }
 
+        private void RefreshRoomLife(Room room)
+        {
+            if (room == default)
+            {
+                return;
+            }
+
+            room.LifeRefresh.Disposable = RoomRemover(room.Id, () => WriteLine($"Room #{room.Id} removed"));
+        }
+
         private IDisposable RoomRemover(string roomId, Action notify)
         {
-            Room _;
             return
                 Observable.Timer(Settings.Default.Ttl)
                     .Subscribe(
-                        n =>
+                        _ =>
                         {
-                            Rooms.TryRemove(roomId, out _);
-                            notify?.Invoke();
+                            if (!Rooms.TryRemove(roomId, out var room) || room == default)
+                            {
+                                return;
+                            }
+
+                            room.Dispose();
+                            notify();
                         });
         }
     }

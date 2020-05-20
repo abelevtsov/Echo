@@ -11,7 +11,7 @@ namespace Echo.Server
         {
             using (WebApp.Start<Startup>(Settings.Default.ServerUri))
             {
-                WriteLine("Server running on {0}", Settings.Default.ServerUri);
+                WriteLine($"Server running on {Settings.Default.ServerUri}");
                 WriteLine("Press any key to exit");
                 ReadKey(true);
             }

@@ -27,7 +27,7 @@ namespace Echo.Server
             var room = RoomManager.Instance.GetRoomById(roomId);
             if (room.AddClient(connectionId, clientId))
             {
-                WriteLine("Сlient {0} entered room {1}; (ConnectionId={2})", clientId, roomId, connectionId);
+                WriteLine($"Сlient {clientId} entered room {room.Id}; (ConnectionId={connectionId})");
             }
 
             return base.OnConnected(request, connectionId);

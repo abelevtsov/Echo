@@ -2,9 +2,6 @@
 {
     public static class Program
     {
-        public static void Main()
-        {
-            Server.Run();
-        }
+        public static void Main() => Server.Run();
     }
 }

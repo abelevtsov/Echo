@@ -7,9 +7,6 @@ namespace Echo.Server
     public class Startup
     {
         [UsedImplicitly]
-        public void Configuration(IAppBuilder app)
-        {
-            app.MapSignalR<EchoConnection>("/echo");
-        }
+        public void Configuration(IAppBuilder app) => app.MapSignalR<EchoConnection>("/echo");
     }
 }

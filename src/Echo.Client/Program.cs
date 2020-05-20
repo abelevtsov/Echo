@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using NDesk.Options;
 
@@ -9,7 +10,7 @@ namespace Echo.Client
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var clientId = string.Empty;
             var roomId = string.Empty;
@@ -22,20 +23,22 @@ namespace Echo.Client
                         { "*", _ => DisplayHelp() }
                     };
             var extra = options.Parse(args);
-            var cts = new CancellationTokenSource();
             if (string.IsNullOrEmpty(clientId) ||
                 string.IsNullOrEmpty(roomId) ||
                 extra.Any())
             {
                 DisplayHelp();
-            }
-            else
-            {
-                Client.Connect(clientId, roomId, cts.Token);
+                KeepRunning();
+                return;
             }
 
-            WriteLine("Press Enter to exit");
-            ReadLine();
+            var cts = new CancellationTokenSource();
+            cts.Token.Register(() => WriteLine("Exiting app"));
+
+            await Client.Connect(clientId, roomId, cts.Token).ConfigureAwait(false);
+
+            KeepRunning();
+
             cts.Cancel();
         }
 
@@ -46,6 +49,12 @@ namespace Echo.Client
             WriteLine("\t--cid [clientId]\t any unique string, better Guid");
             WriteLine("\t--rid [roomId]\t Server room identifier");
             WriteLine("\t--h display help");
+        }
+
+        private static void KeepRunning()
+        {
+            WriteLine("Press Enter to exit");
+            ReadLine();
         }
     }
 }
